@@ -59,6 +59,7 @@ public class VAD implements Closeable {
   @Override
   public void close() {
     LOGGER.info("vad close");
+    Detector.INSTANCE.reset_kika_vad_detector(state);
     Detector.INSTANCE.destroy_kika_vad_detector(state);
   }
 
