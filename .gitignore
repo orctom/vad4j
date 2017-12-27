@@ -18,3 +18,4 @@ target/
 diagrams
 *.versionsBackup
 *.pcm
+!src/test/resources/sample.pcm
