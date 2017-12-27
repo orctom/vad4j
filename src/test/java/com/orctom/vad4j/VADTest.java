@@ -22,25 +22,24 @@ public class VADTest {
     int chunkSize = 1775;
     int startIndex = 0;
     int endIndex = chunkSize;
-    VAD vad = new VAD();
-    while (startIndex < bytes.length) {
-      Stopwatch stopwatch = Stopwatch.createStarted();
-      if (endIndex > bytes.length) {
-        endIndex = bytes.length;
-      }
-      LOGGER.info("1, {}", stopwatch);
-      byte[] pcm = Arrays.copyOfRange(bytes, startIndex, endIndex);
-      LOGGER.info("2, {}", stopwatch);
-      float score = vad.speechProbability(pcm);
-      LOGGER.info("4, {}", stopwatch);
+    try (VAD vad = new VAD()) {
+      while (startIndex < bytes.length) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        if (endIndex > bytes.length) {
+          endIndex = bytes.length;
+        }
+        LOGGER.info("1, {}", stopwatch);
+        byte[] pcm = Arrays.copyOfRange(bytes, startIndex, endIndex);
+        LOGGER.info("2, {}", stopwatch);
+        float score = vad.speechProbability(pcm);
+        LOGGER.info("4, {}", stopwatch);
 
-      counter.increment();
-      startIndex += chunkSize;
-      endIndex += chunkSize;
-      LOGGER.info("vad isSilent: {}, took: {}", score, stopwatch);
+        counter.increment();
+        startIndex += chunkSize;
+        endIndex += chunkSize;
+        LOGGER.info("vad isSilent: {}, took: {}", score, stopwatch);
+      }
     }
-    Stopwatch stopwatch = Stopwatch.createStarted();
-    stopwatch.stop();
-    System.out.println("finished, took: " + stopwatch.toString() + ", processed: #" + counter.toString());
+    System.out.println("finished, processed: #" + counter.toString());
   }
 }
