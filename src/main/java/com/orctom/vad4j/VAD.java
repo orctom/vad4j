@@ -19,10 +19,6 @@ public class VAD implements Closeable {
 
   private Pointer state;
 
-  static {
-    Native.setProtected(true);
-  }
-
   public VAD() {
     LOGGER.info("create vad");
     state = Detector.INSTANCE.create_kika_vad_detector();
