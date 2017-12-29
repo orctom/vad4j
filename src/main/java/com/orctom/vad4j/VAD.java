@@ -1,6 +1,5 @@
 package com.orctom.vad4j;
 
-import com.orctom.vad4j.exception.Bytes;
 import com.orctom.vad4j.exception.VADException;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
@@ -15,33 +14,39 @@ public class VAD implements Closeable {
   private static final Logger LOGGER = LoggerFactory.getLogger(VAD.class);
 
   public static final float THRESHOLD = 0.6F;
+
   private static final int CODE_SUCCESS = 0;
 
   private Pointer state;
 
   public VAD() {
-    LOGGER.info("create vad");
+    this(VadWindowSize._10ms, VadMode.aggressive);
+  }
+
+  public VAD(VadWindowSize windowSize, VadMode vadMode) {
     state = Detector.INSTANCE.create_kika_vad_detector();
-    int result = Detector.INSTANCE.init_kika_vad_detector(state);
+    int windowSizeCode = windowSize.getCode();
+    int modeCode = vadMode.getCode();
+    int result = Detector.INSTANCE.init_kika_vad_detector(state, windowSizeCode, modeCode);
     if (CODE_SUCCESS != result) {
       throw new VADException("Failed to init VAD");
     }
-    LOGGER.info("created vad");
   }
 
   public float speechProbability(byte[] pcm) {
-    LOGGER.info("speechProbability");
     if (null == pcm || pcm.length < 320) {
-      LOGGER.info("speechProbability not a frame");
       return 0F;
     }
 
     short[] frame = Bytes.toShortArray(pcm);
-    LOGGER.info("speechProbability byte[] -> short[]");
-    float score = Detector.INSTANCE.process_kika_vad_prob(state, frame, frame.length);
-    LOGGER.info("speechProbability score: {}", score);
-    LOGGER.trace("score: {}", score);
-    return score;
+    try {
+      float score = Detector.INSTANCE.process_kika_vad_prob(state, frame, frame.length);
+      LOGGER.trace("score: {}", score);
+      return score;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return 0.0F;
+    }
   }
 
   public boolean isSpeech(byte[] pcm) {
@@ -54,8 +59,7 @@ public class VAD implements Closeable {
 
   @Override
   public void close() {
-    LOGGER.info("vad close");
-    Detector.INSTANCE.reset_kika_vad_detector(state);
+    LOGGER.info("closing VAD");
     Detector.INSTANCE.destroy_kika_vad_detector(state);
   }
 
@@ -65,7 +69,7 @@ public class VAD implements Closeable {
 
     Pointer create_kika_vad_detector();
 
-    int init_kika_vad_detector(Pointer vadDetector);
+    int init_kika_vad_detector(Pointer vadDetector, int windowSize, int mode);
 
     int reset_kika_vad_detector(Pointer vadDetector);
 
@@ -79,6 +83,5 @@ public class VAD implements Closeable {
     float process_kika_vad_prob(Pointer state, short[] frame, int length);
 
     void destroy_kika_vad_detector(Pointer vadDetector);
-
   }
 }

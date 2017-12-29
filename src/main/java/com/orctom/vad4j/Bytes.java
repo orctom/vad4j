@@ -1,4 +1,4 @@
-package com.orctom.vad4j.exception;
+package com.orctom.vad4j;
 
 public class Bytes {
 
