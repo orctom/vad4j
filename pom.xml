@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>vad4j</artifactId>
-  <version>1.0</version>
+  <version>1.1-SNAPSHOT</version>
 
   <description>WebRTC VAD for Java</description>
   <url>https://github.com/orctom/vad4j/</url>
@@ -28,7 +28,7 @@
     <url>https://github.com/orctom/vad4j/</url>
     <connection>scm:git:git@github.com:orctom/vad4j.git</connection>
     <developerConnection>scm:git:git@github.com:orctom/vad4j.git</developerConnection>
-    <tag>1.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
