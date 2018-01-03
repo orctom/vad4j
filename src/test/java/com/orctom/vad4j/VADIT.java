@@ -1,13 +1,11 @@
 package com.orctom.vad4j;
 
 import com.google.common.base.Stopwatch;
-import com.google.common.io.ByteStreams;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -19,22 +17,25 @@ public class VADIT {
 
   @Test
   public void isVoice() throws Exception {
-    InputStream in = getClass().getResourceAsStream("/sample.pcm");
-    byte[] bytes = ByteStreams.toByteArray(in);
     LongAdder counter = new LongAdder();
-    ExecutorService es = Executors.newFixedThreadPool(10);
+    ExecutorService es = Executors.newFixedThreadPool(30);
     final int chunkSize = 1775;
+    final int length = 23432523;
     for (int i = 0; i < 10_000; i++) {
       es.submit(() -> {
         int startIndex = 0;
         int endIndex = chunkSize;
+        Random random = new Random();
         try (VAD vad = new VAD()) {
-          while (startIndex < bytes.length) {
+          while (startIndex < length) {
             Stopwatch stopwatch = Stopwatch.createStarted();
-            if (endIndex > bytes.length) {
-              endIndex = bytes.length;
+            if (endIndex > length) {
+              endIndex = length;
             }
-            byte[] pcm = Arrays.copyOfRange(bytes, startIndex, endIndex);
+            int size = endIndex - startIndex;
+            byte[] pcm = new byte[size];
+            random.nextBytes(pcm);
+
             float score = vad.speechProbability(pcm);
 
             counter.increment();
@@ -45,8 +46,9 @@ public class VADIT {
         }
       });
     }
-    es.awaitTermination(5, TimeUnit.MINUTES);
+    TimeUnit.SECONDS.sleep(600);
     es.shutdown();
+    es.awaitTermination(5, TimeUnit.MINUTES);
     es.shutdownNow();
     System.out.println("finished, processed: #" + counter.toString());
   }

@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class VAD implements Closeable {
 
@@ -16,6 +18,8 @@ public class VAD implements Closeable {
   public static final float THRESHOLD = 0.6F;
 
   private static final int CODE_SUCCESS = 0;
+
+  private AtomicBoolean stopped = new AtomicBoolean(false);
 
   private Pointer state;
 
@@ -44,7 +48,7 @@ public class VAD implements Closeable {
       LOGGER.trace("score: {}", score);
       return score;
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error(e.getMessage(), e);
       return 0.0F;
     }
   }
@@ -59,6 +63,10 @@ public class VAD implements Closeable {
 
   @Override
   public void close() {
+    if (stopped.getAndSet(true)) {
+      return;
+    }
+
     LOGGER.info("closing VAD");
     Detector.INSTANCE.destroy_kika_vad_detector(state);
   }
@@ -76,7 +84,7 @@ public class VAD implements Closeable {
     /**
      * 1: voice
      * 0: no voice
-     * <0: crash
+     * &lt;0: crash
      */
     int process_kika_vad(Pointer state, short[] frame, int length);
 
