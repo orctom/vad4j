@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class VAD implements Closeable {
 
@@ -18,27 +17,30 @@ public class VAD implements Closeable {
   public static final float THRESHOLD = 0.6F;
 
   private static final int CODE_SUCCESS = 0;
+  private static final int PACKET_MIN_SIZE = 320;
+  private static final int PACKET_SIZE_MS = 120;
+  private static final int PACKET_SIZE = 3840;
+  private static final int BOS_DELAY_MS = 400;
+  private static final int EOS_DELAY_MS = 1000;
 
   private AtomicBoolean stopped = new AtomicBoolean(false);
 
   private Pointer state;
 
   public VAD() {
-    this(VadWindowSize._10ms, VadMode.aggressive);
+    this(PACKET_SIZE_MS, BOS_DELAY_MS, EOS_DELAY_MS);
   }
 
-  public VAD(VadWindowSize windowSize, VadMode vadMode) {
+  public VAD(int maxPacketSizeMs, int bosDelayMs, int eosDelayMs) {
     state = Detector.INSTANCE.create_kika_vad_detector();
-    int windowSizeCode = windowSize.getCode();
-    int modeCode = vadMode.getCode();
-    int result = Detector.INSTANCE.init_kika_vad_detector(state, windowSizeCode, modeCode);
+    int result = Detector.INSTANCE.init_kika_vad_detector(state, maxPacketSizeMs, bosDelayMs, eosDelayMs);
     if (CODE_SUCCESS != result) {
       throw new VADException("Failed to init VAD");
     }
   }
 
   public float speechProbability(byte[] pcm) {
-    if (null == pcm || pcm.length < 320) {
+    if (null == pcm || pcm.length < PACKET_MIN_SIZE || pcm.length > PACKET_SIZE) {
       return 0F;
     }
 
@@ -77,7 +79,13 @@ public class VAD implements Closeable {
 
     Pointer create_kika_vad_detector();
 
-    int init_kika_vad_detector(Pointer vadDetector, int windowSize, int mode);
+    /**
+     * @param vadDetector the pointer
+     * @param packetSizeMs packet size in ms, 120 ms recommended
+     * @param startDelayMs how long before the wave been treated as start of voice
+     * @param stopDelayMs low long before the wave been treated as end of voice
+     */
+    int init_kika_vad_detector(Pointer vadDetector, int packetSizeMs, int startDelayMs, int stopDelayMs);
 
     int reset_kika_vad_detector(Pointer vadDetector);
 

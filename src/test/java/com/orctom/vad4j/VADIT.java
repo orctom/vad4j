@@ -18,10 +18,10 @@ public class VADIT {
   @Test
   public void isVoice() throws Exception {
     LongAdder counter = new LongAdder();
-    ExecutorService es = Executors.newFixedThreadPool(30);
-    final int chunkSize = 1775;
-    final int length = 23432523;
-    for (int i = 0; i < 10_000; i++) {
+    ExecutorService es = Executors.newFixedThreadPool(10);
+    final int chunkSize = 426;
+    final int length = 42600;
+    for (int i = 0; i < 10; i++) {
       es.submit(() -> {
         int startIndex = 0;
         int endIndex = chunkSize;
@@ -46,9 +46,9 @@ public class VADIT {
         }
       });
     }
-    TimeUnit.SECONDS.sleep(600);
+    TimeUnit.SECONDS.sleep(1);
     es.shutdown();
-    es.awaitTermination(5, TimeUnit.MINUTES);
+    es.awaitTermination(1, TimeUnit.MINUTES);
     es.shutdownNow();
     System.out.println("finished, processed: #" + counter.toString());
   }

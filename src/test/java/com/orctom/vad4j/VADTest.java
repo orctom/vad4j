@@ -16,10 +16,10 @@ public class VADTest {
 
   @Test
   public void isVoice() throws Exception {
-    InputStream in = getClass().getResourceAsStream("/sample.pcm");
+    InputStream in = getClass().getResourceAsStream("/pcm/kika_1.pcm");
     byte[] bytes = ByteStreams.toByteArray(in);
     LongAdder counter = new LongAdder();
-    int chunkSize = 1775;
+    int chunkSize = 426;
     int startIndex = 0;
     int endIndex = chunkSize;
     try (VAD vad = new VAD()) {
@@ -28,16 +28,13 @@ public class VADTest {
         if (endIndex > bytes.length) {
           endIndex = bytes.length;
         }
-        LOGGER.info("1, {}", stopwatch);
         byte[] pcm = Arrays.copyOfRange(bytes, startIndex, endIndex);
-        LOGGER.info("2, {}", stopwatch);
         float score = vad.speechProbability(pcm);
-        LOGGER.info("4, {}", stopwatch);
 
         counter.increment();
         startIndex += chunkSize;
         endIndex += chunkSize;
-        LOGGER.info("vad isSilent: {}, took: {}", score, stopwatch);
+        LOGGER.info("vad : took: {}, score: {}", stopwatch, score);
       }
     }
     System.out.println("finished, processed: #" + counter.toString());
